@@ -4,21 +4,22 @@ import requests
 
 app = Flask(__name__)
 
-# --- HARDCODED TOKENS (Added per your request) ---
-
-# -------------------------------------------------
+# Fetch environment variables from Render
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "default_token")
+NOTION_API_KEY = os.environ.get("NOTION_API_KEY")
+NOTION_DATABASE_ID = os.environ.get("NOTION_DATABASE_ID")
 
 @app.route("/", methods=["GET"])
 def home():
     return "Telegram-Notion Bot is active!", 200
 
-# We use the token directly in the route URL
+# Dynamic route matching your Telegram webhook endpoint
 @app.route(f"/{TELEGRAM_BOT_TOKEN}", methods=["POST"])
 def webhook():
     update = request.get_json()
     
-    # Check if the update contains a text message
-    if "message" in update and "text" in update["message"]:
+    # Check if update contains a text message
+    if update and "message" in update and "text" in update["message"]:
         text = update["message"]["text"]
         send_to_notion(text)
         
@@ -34,7 +35,7 @@ def send_to_notion(text):
     payload = {
         "parent": {"database_id": NOTION_DATABASE_ID},
         "properties": {
-            "Name": { # Assumes your title column in Notion is named 'Name'
+            "Name": {
                 "title": [
                     {
                         "text": {
